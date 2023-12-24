@@ -1,0 +1,130 @@
+from flask import Flask
+from flask_restful import Resource, Api, reqparse
+
+app = Flask(__name__)
+api = Api(app)
+
+# Library
+COUNTRIES = {
+	'1': {'name': 'Austria', 'capital': 'Vienna'},
+	'2': {'name': 'Bulgaria', 'capital': 'Sofia'},
+	'3': {'name': 'Canada', 'capital': 'Ottawa'},
+	'4': {'name': 'Denmark', 'capital': 'Copenhagen'},
+	'5': {'name': 'Egypt', 'capital': 'Cairo'},
+	'6': {'name': 'Fiji', 'capital': 'Suva'},
+	'7': {'name': 'Germany', 'capital': 'Berlin'},
+	'8': {'name': 'Haiti', 'capital': 'Port-au-Prince'},
+	'9': {'name': 'India', 'capital': 'New Delhi'},	
+	'10':{'name': 'Japan', 'capital': 'Tokyo'},
+	'11':{'name': 'Kenya', 'capital': 'Nairobi'},
+	'12':{'name': 'Luxemburg', 'capital':'Luxemburg'},
+	'13':{'name': 'Maldives', 'capital': 'Male'},
+	'14':{'name': 'Netherlands', 'capital': 'Amsterdam'},
+	'15':{'name': 'Oman', 'capital': 'Muscat'},
+	'16':{'name': 'Panama', 'capital': 'Panama city'},
+	'17':{'name': 'Qatar', 'capital': 'Doha'},
+	'18':{'name': 'Russia', 'capital': 'Moscow'},
+	'19':{'name': 'Saint Lucia', 'capital': 'Castries'},
+	'20':{'name': 'Turkey', 'capital': 'Ankara'},
+	'21':{'name': 'United States', 'capital': 'Washington D.C'},	
+	'22':{'name': 'Venezuela', 'capital': 'Caracas'},
+	'23':{'name': 'Zambia', 'capital': 'Lusaka'},
+	'24':{'name': 'United Kingdom', 'capital': 'London'},	
+	
+
+
+ }
+
+# RequestParser() enables adding and passing of multiple 
+# arguments in the context of a single request
+parser = reqparse.RequestParser()
+
+
+# defining a class passing in the base class imported from flask
+class CountriesList(Resource):
+    # method to retrieve the dictionary information
+    # self parameter refers to the current instance of the class
+    # self is used to access the variables that belong to the class
+    def get(self): 
+        return COUNTRIES
+    
+    # creating the post method to send data 
+    def post(self):
+        # using add_argument to add data to the variable "parser" 
+        parser.add_argument("name")
+        parser.add_argument("capital")
+        # creating a new variable to combine all the arguments
+        args = parser.parse_args()
+        # will keep track of the number of countries in the library
+        country_id = int(max(COUNTRIES.keys())) + 1
+        # applying string format to country_id 
+        country_id = "%i" % country_id
+        # adding the name and capital to countries being posted
+        COUNTRIES[country_id] = {
+            "name":args["name"],
+            "capital":args["capital"],
+        }
+        # 201 is an HTTP status code indicating that a post request was successful
+        return COUNTRIES[country_id], 201
+
+class Country(Resource):
+    # new method to search country id
+    def get(self, country_id):
+        if country_id not in COUNTRIES:
+            # 404 is the HHTML for  "resource not found" error code
+            return "not found", 404
+        else:
+            return COUNTRIES[country_id]
+     
+    # used to update information about a country
+    # does NOT created new entry
+    def put(self, country_id):
+        parser.add_argument("name")
+        parser.add_argument("capital")
+        args = parser.parse_args()
+        if country_id not in COUNTRIES:
+            return "record not found", 404
+        else:
+            country = COUNTRIES[country_id]
+            country["name"] = args["name"] if args["name"] is not None else country["name"]
+            country["capital"] = args["capital"] if args["capital"] is not None else country["capital"]
+            # if the HHTML code 200 is returned, the the update was successful
+            return country, 200
+        
+    # this method is used to delete an entry
+    def delete(self, country_id):
+        if country_id not in COUNTRIES:
+            return "Not found", 404
+        else:
+            del COUNTRIES[country_id]
+            # 204 is the HHTML code indicated a successful deletion
+            return '', 204
+        
+        
+    
+# adding the route which is used to call data from this class
+api.add_resource(CountriesList, "/countries")
+api.add_resource(Country, "/<country_id>")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
